@@ -1,8 +1,8 @@
 package jk.patterns.chain_of_responsibility.store;
 
 public class OrderInfo {
-    private String orderInfo;
-    private double price;
+    private final String orderInfo;
+    private final double price;
 
     public OrderInfo(String orderInfo, double price) {
         this.orderInfo = orderInfo;

@@ -3,6 +3,7 @@ package jk.patterns.chain_of_responsibility;
 import jk.patterns.chain_of_responsibility.store.Store;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class Main {
@@ -45,11 +46,24 @@ public class Main {
         chainStore.registerUser(david);
         chainStore.registerUser(frank);
 
+        System.out.println(chainStore.getStoreName().toUpperCase());
+
+        System.out.println("--- Simple principle ---");
+
         chainStore.createSimpleOrder(alice, aliceOrder);    // unknown Item 'Candy'
         chainStore.createSimpleOrder(bob, bobOrder);        // ok
         chainStore.createSimpleOrder(clair, clairOrder);    // not enough money
         chainStore.createSimpleOrder(david, davidOrder);    // underage
         chainStore.createSimpleOrder(eric, ericOrder);      // unregistered
         chainStore.createSimpleOrder(frank, frankOrder);    // not enough goods in the storage
+
+        System.out.println("--- Chain of Responsibility ---");
+
+        chainStore.createAdvancedOrder(alice, aliceOrder);    // unknown Item 'Candy'
+        chainStore.createAdvancedOrder(bob, bobOrder);        // ok
+        chainStore.createAdvancedOrder(clair, clairOrder);    // not enough money
+        chainStore.createAdvancedOrder(david, davidOrder);    // underage
+        chainStore.createAdvancedOrder(eric, ericOrder);      // unregistered
+        chainStore.createAdvancedOrder(frank, frankOrder);    // not enough goods in the storage
     }
 }

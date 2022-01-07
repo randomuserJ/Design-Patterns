@@ -1,25 +1,24 @@
 package jk.patterns.chain_of_responsibility.store;
 
 import jk.patterns.chain_of_responsibility.Person;
+import jk.patterns.chain_of_responsibility.exceptions.AuthorizationException;
 import jk.patterns.chain_of_responsibility.exceptions.ExclusiveItemException;
-import jk.patterns.chain_of_responsibility.exceptions.InvalidItemException;
 import jk.patterns.chain_of_responsibility.exceptions.InvalidQuantityException;
 import jk.patterns.chain_of_responsibility.exceptions.MoneyException;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-public class SimpleOrderManager {
+public class SimpleOrderManager extends OrderManager {
 
-    private final List<Item> storage;
-    private OrderInfo orderInfo;
+    private final CustomerDatabase database;
 
-    public SimpleOrderManager(List<Item> storage) {
-        this.storage = storage;
+    public SimpleOrderManager(Storage storage, CustomerDatabase database) {
+        super(storage);
+        this.database = database;
     }
 
     public void createSimpleOrder(Person person, Map<String, Integer> goods) {
+        verifyCustomerRegistration(person);
         verifyItemAvailability(goods);
         verifyPriceAmount(person.getMoney(), goods);
         verifyExclusivePermissions(person.getAge(), goods);
@@ -27,8 +26,13 @@ public class SimpleOrderManager {
         createOrderInfo(person, goods);
     }
 
-    public OrderInfo getOrderInfo() {
-        return this.orderInfo;
+    private void verifyCustomerRegistration(Person person) throws AuthorizationException {
+        if (!customerIsRegistered(person))
+            throw new AuthorizationException(person.getName() + " " + person.getSurname());
+    }
+
+    private boolean customerIsRegistered(Person user) {
+        return this.database.customerIsRegistered(user.getName() + user.getSurname());
     }
 
     private void verifyItemAvailability(Map<String, Integer> goods) {
@@ -36,7 +40,7 @@ public class SimpleOrderManager {
     }
 
     private void verifyItemAvailability(String itemName, int orderedPieces) {
-        Item storageItem = getItemByName(itemName);
+        Item storageItem = this.storage.getItemByName(itemName);
         if (storageItem.getAmountInStorage() < orderedPieces)
             throw new InvalidQuantityException(storageItem.getName(), storageItem.getAmountInStorage(), orderedPieces);
     }
@@ -52,34 +56,7 @@ public class SimpleOrderManager {
         if (customerAge >= 18)
             return;
 
-        if (goods.keySet().stream().anyMatch(itemName -> getItemByName(itemName).isExclusiveItem()))
+        if (goods.keySet().stream().anyMatch(itemName -> this.storage.getItemByName(itemName).isExclusiveItem()))
             throw new ExclusiveItemException();
-    }
-
-    private void createOrderInfo(Person person, Map<String, Integer> goods) {
-        this.orderInfo = new OrderInfo(
-                String.format("Order for the customer %s completed.", person.getSurname()), computeOrderPrice(goods));
-    }
-
-
-    private Item getItemByName(String itemName) throws InvalidItemException {
-        Optional<Item> optionalItem = this.storage.stream()
-                .filter(item -> item.getName().equals(itemName))
-                .findFirst();
-
-        if (optionalItem.isPresent())
-            return optionalItem.get();
-
-        throw new InvalidItemException(itemName);
-    }
-
-    private double computeOrderPrice(Map<String, Integer> goods) {
-        double totalItemsPrice = 0;
-
-        for (Map.Entry<String, Integer> entry : goods.entrySet()) {
-            totalItemsPrice += getItemByName(entry.getKey()).getDefaultPrice() * entry.getValue();
-        }
-
-        return totalItemsPrice;
     }
 }
