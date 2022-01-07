@@ -11,6 +11,7 @@ public class FinalizeOrderHandler extends ChainHandler {
 
     @Override
     public boolean handleOrder(Person person, Map<String, Integer> goods) {
+        // We do not want to continue with the validation. If we came all the way up here, the order is accepted.
         return true;
     }
 }
